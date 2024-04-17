@@ -3,6 +3,11 @@ import uvicorn
 from fastapi import FastAPI
 from pywa import WhatsApp
 from pywa.types import Message, Button
+from fastapi import FastAPI, Body, Path
+from pydantic import BaseModel
+from typing import List, Optional
+
+
 def print_message(_, msg): return print(msg)
 
 
@@ -17,22 +22,23 @@ wa = WhatsApp(
 )
 
 
-data = {"916369135307":{"Pets":["Tommy","Charlie","Cooper"]}}
+data = {"Pets": ["Tommy", "Charlie", "Cooper"], "services": [
+    "Dog Walking", "Adventure Walking", "Nail Clipping"]}
 
 
 @wa.on_message()
 def message_handler(_: WhatsApp, msg: Message):
     number = msg.from_user.wa_id
     if isinstance(number, str) and len(number) > 0:
-        pets = data.get(number, {}).get("Pets", [])
-        buttons = [Button(pet, callback_data=pet.lower()) for pet in pets]
+        services = data.get("services", [])
+        buttons = [Button(service, callback_data=service.lower())
+                   for service in services]
 
         wa.send_message(
             to=number,
-            text="Choose a pet to book the service",
+            text="Choose a service",
             buttons=buttons,
         )
+
     else:
         print("Invalid phone number or WhatsApp ID:", number)
-        
-        
